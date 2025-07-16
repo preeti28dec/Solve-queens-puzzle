@@ -3,13 +3,12 @@ import React from "react";
 const colorPalette = [
     "bg-purple-200", "bg-orange-200", "bg-blue-200", "bg-green-200",
     "bg-gray-200", "bg-red-200", "bg-yellow-200", "bg-pink-200",
-    "bg-indigo-200", // This will be the 9th color (index 8)
-    "bg-lime-200", "bg-teal-200", "bg-rose-200", // Additional colors (not strictly used with region IDs 0-8 in the puzzles)
+    "bg-indigo-200", 
+    "bg-lime-200", "bg-teal-200", "bg-rose-200", 
     "bg-cyan-200", "bg-fuchsia-200", "bg-emerald-200", "bg-amber-200",
     "bg-sky-200", "bg-violet-200", "bg-light-blue-200", "bg-warm-gray-200"
 ];
 
-// Ensure this map covers all base colors used in the colorPalette
 const borderColorMap = {
     "purple": "border-purple-400", "purple-dark": "border-purple-700",
     "orange": "border-orange-400", "orange-dark": "border-orange-700",
@@ -36,26 +35,19 @@ const borderColorMap = {
 export default function Cell({ value, status, onClick, colorId, isRowValid, isColValid, isRegionValid }) {
     const bgColorClass = colorPalette[colorId % colorPalette.length];
     const baseColorName = bgColorClass.replace("bg-", "").replace("-200", "");
-
-    // Determine the border color based on validity of row, column, or region
-    let actualBorderColorClass = borderColorMap[baseColorName] || "border-gray-400";
-
-    // If the row OR column OR region is valid, use the darker border for that color.
-    // This applies the effect to cells within a completed row/column/region.
+    let actualBorderColorClass = "border-gray-400";
     if (isRowValid || isColValid || isRegionValid) {
-        actualBorderColorClass = borderColorMap[`${baseColorName}-dark`] || actualBorderColorClass;
+       actualBorderColorClass = borderColorMap[`${baseColorName}-dark`] || actualBorderColorClass;
     }
 
     const errorColor = status === "error" ? "bg-red-600" : "";
     const validColor = status === "valid" ? "bg-green-600" : "";
 
     return (
-        <div
-            onClick={onClick}
+        <div onClick={onClick}
             className={`aspect-square w-full h-full flex items-center justify-center
-                        border ${actualBorderColorClass} text-3xl font-bold cursor-pointer select-none
+                        border ${actualBorderColorClass} text-xl font-bold cursor-pointer select-none
                         ${errorColor || validColor || bgColorClass}
-                        hover:ring-2 hover:ring-blue-500 transition-all duration-100 ease-in-out
                         ${value === '❌' ? 'text-red-600' : (value === '👑' ? 'text-purple-800' : 'text-gray-700')}`}
         >
             {value}

@@ -3,7 +3,7 @@ import Cell from "./Cell"; // Assuming Cell.jsx is in the same directory
 
 const symbols = ["", "❌", "👑"];
 
-export default function Board({ size, regions, initialQueens, numQueensToPlace }) {
+export default function Board({ size, regions, initialQueens, numQueensToPlace, onNextLevel, onCancel }) {
     const createInitialGrid = useCallback(() => {
         const newGrid = Array(size).fill().map(() => Array(size).fill(""));
         initialQueens.forEach(([r, c]) => {
@@ -18,6 +18,7 @@ export default function Board({ size, regions, initialQueens, numQueensToPlace }
     const [history, setHistory] = useState([]);
     const [solved, setSolved] = useState(false);
     const [showErrorCells, setShowErrorCells] = useState(false);
+    const [showSolvedModal, setShowSolvedModal] = useState(false); // New state for modal
 
     const [validRows, setValidRows] = useState(Array(size).fill(false));
     const [validCols, setValidCols] = useState(Array(size).fill(false));
@@ -27,14 +28,18 @@ export default function Board({ size, regions, initialQueens, numQueensToPlace }
 
     useEffect(() => {
         resetGame();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [initialQueens, regions]);
 
     const getStatus = useCallback((g, r, c) => {
         if (g[r][c] !== "👑") return "";
 
+        // Check row for multiple queens
         if (g[r].filter(v => v === "👑").length > 1) return "error";
+        // Check column for multiple queens
         if (g.map(row => row[c]).filter(v => v === "👑").length > 1) return "error";
 
+        // Check region for multiple queens
         const regionId = regions[r][c];
         let queensInRegion = 0;
         for (let rowIdx = 0; rowIdx < size; rowIdx++) {
@@ -46,16 +51,17 @@ export default function Board({ size, regions, initialQueens, numQueensToPlace }
         }
         if (queensInRegion > 1) return "error";
 
+        // Check diagonals for multiple queens
         for (let dr = -1; dr <= 1; dr++) {
             for (let dc = -1; dc <= 1; dc++) {
-                if (dr === 0 && dc === 0) continue;
-                const nr = r + dr, nc = c + dc;
+                if (dr === 0 && dc === 0) continue; // Skip the current cell
+                let nr = r + dr, nc = c + dc;
+                // Check immediate neighbors (for 8 directions around a queen)
                 if (nr >= 0 && nr < size && nc >= 0 && nc < size && g[nr][nc] === "👑") {
                     return "error";
                 }
             }
         }
-
         return "valid";
     }, [size, regions]);
 
@@ -79,6 +85,7 @@ export default function Board({ size, regions, initialQueens, numQueensToPlace }
         }
 
         if (allQueensValid) {
+            // Validate rows
             for (let r = 0; r < size; r++) {
                 const queensInRow = currentGrid[r].filter(v => v === "👑").length;
                 if (queensInRow === 1) {
@@ -89,6 +96,7 @@ export default function Board({ size, regions, initialQueens, numQueensToPlace }
                 }
             }
 
+            // Validate columns
             for (let c = 0; c < size; c++) {
                 let queensInCol = 0, queenRow = -1;
                 for (let r = 0; r < size; r++) {
@@ -102,6 +110,7 @@ export default function Board({ size, regions, initialQueens, numQueensToPlace }
                 }
             }
 
+            // Validate regions
             const uniqueRegionIds = new Set();
             regions.forEach(row => row.forEach(id => uniqueRegionIds.add(id)));
 
@@ -142,10 +151,10 @@ export default function Board({ size, regions, initialQueens, numQueensToPlace }
             }
         }
 
-        // Show alert once when puzzle is solved and correct number of queens placed
+        // Show alert/modal once when puzzle is solved and correct number of queens placed
         if (solved && totalQueens === numQueensToPlace && !hasShownAlert.current) {
-           // alert(`🎉 Puzzle Solved! You placed all ${numQueensToPlace} queens correctly!`);
-            hasShownAlert.current = true;
+            setShowSolvedModal(true); // Show the modal
+            hasShownAlert.current = true; // Set flag to true to prevent re-showing
         }
     }, [grid, checkSolved, solved, numQueensToPlace, size]);
 
@@ -167,6 +176,7 @@ export default function Board({ size, regions, initialQueens, numQueensToPlace }
             setHistory(history.slice(0, -1));
             setSolved(false);
             hasShownAlert.current = false; // Reset alert flag
+            setShowSolvedModal(false); // Hide modal on undo
         }
     };
 
@@ -197,10 +207,25 @@ export default function Board({ size, regions, initialQueens, numQueensToPlace }
         setValidCols(Array(size).fill(false));
         setValidRegions(new Set());
         hasShownAlert.current = false; // Reset alert flag
+        setShowSolvedModal(false); // Hide modal on reset
     }, [createInitialGrid, size]);
 
+    const handleNextLevel = () => {
+        setShowSolvedModal(false);
+        if (onNextLevel) {
+            onNextLevel();
+        }
+    };
+
+    const handleCancel = () => {
+        setShowSolvedModal(false);
+        if (onCancel) {
+            onCancel();
+        }
+    };
+
     return (
-        <div className="bg-white rounded-lg shadow-xl mx-auto w-full max-w-md p-4">
+        <div className="bg-white rounded-lg shadow-xl mx-auto w-full max-w-md sm:px-4 py-4">
             <div
                 className={`grid aspect-square border-2 border-black transition-all duration-300`}
                 style={{ gridTemplateColumns: `repeat(${size}, 1fr)` }}
@@ -250,9 +275,31 @@ export default function Board({ size, regions, initialQueens, numQueensToPlace }
                 </button>
             </div>
 
-            {solved && (
-                <div className="mt-6 text-green-600 font-bold text-xl text-center animate-bounce">
-                    🎉 You solved the puzzle! 🎉
+            {/* Solved Modal */}
+            {showSolvedModal && (
+                <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+                    <div className="bg-white rounded-lg shadow-2xl p-6 max-w-sm w-full text-center">
+                        <h2 className="text-3xl font-bold text-green-600 mb-4 animate-bounce">
+                            🎉 Puzzle Solved! 🎉
+                        </h2>
+                        <p className="text-lg text-gray-700 mb-6">
+                            You placed all {numQueensToPlace} queens correctly!
+                        </p>
+                        <div className="flex justify-center gap-4">
+                            <button
+                                onClick={handleNextLevel}
+                                className="bg-blue-600 hover:bg-blue-700 text-white font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out"
+                            >
+                                Next Level
+                            </button>
+                            <button
+                                onClick={handleCancel}
+                                className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold py-2 px-6 rounded-lg transition duration-300 ease-in-out"
+                            >
+                                Cancel
+                            </button>
+                        </div>
+                    </div>
                 </div>
             )}
         </div>

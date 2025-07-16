@@ -1,10 +1,9 @@
 import React, { useState } from "react";
-import Board from "./component/Board"; // Adjust the path if needed
-import GameRulesCard from "./component/Rules"; // Optional: Replace if you have a rules component
-
+import Board from "./component/Board"; 
+import GameRulesCard from "./component/Rules"; 
+import { levels } from "./levels"; 
 export default function App() {
   const size = 8;
-
   const getUniqueRegionsAndQueenCount = (regions) => {
     const uniqueRegions = new Set();
     for (let r = 0; r < size; r++) {
@@ -14,65 +13,6 @@ export default function App() {
     }
     return uniqueRegions.size;
   };
-
-  const levels = [
-    {
-      name: "Level 1",
-      regions: [
-        [0, 0, 0, 0, 0, 1, 1, 1],
-        [0, 0, 0, 2, 2, 1, 1, 1],
-        [0, 0, 2, 2, 2, 2, 1, 1],
-        [0, 0, 2, 3, 2, 2, 1, 1],
-        [4, 4, 2, 3, 2, 2, 5, 5],
-        [4, 4, 2, 3, 2, 5, 5, 5],
-        [4, 4, 2, 2, 2, 5, 5, 5],
-        [4, 4, 4, 4, 4, 5, 5, 5],
-      ],
-      initialQueens: [],
-    },
-    {
-      name: "Level 2",
-      regions: [
-        [0, 0, 0, 0, 0, 0, 0, 1],
-        [0, 0, 0, 2, 2, 2, 0, 1],
-        [0, 0, 3, 2, 2, 2, 4, 1],
-        [0, 0, 3, 2, 2, 2, 4, 1],
-        [0, 0, 3, 2, 2, 2, 4, 1],
-        [0, 0, 0, 2, 2, 2, 0, 1],
-        [0, 0, 0, 0, 0, 0, 0, 1],
-        [0, 0, 0, 0, 0, 0, 0, 1],
-      ],
-      initialQueens: [],
-    },
-    {
-      name: "Level 3",
-      regions: [
-        [0, 0, 0, 0, 0, 0, 0, 1],
-        [0, 0, 2, 2, 2, 0, 0, 1],
-        [0, 0, 2, 2, 2, 0, 0, 1],
-        [0, 0, 2, 3, 2, 0, 0, 1],
-        [0, 0, 2, 2, 2, 0, 0, 1],
-        [0, 0, 2, 2, 2, 0, 0, 1],
-        [0, 0, 0, 0, 0, 0, 0, 1],
-        [0, 0, 0, 0, 0, 0, 0, 1],
-      ],
-      initialQueens: [],
-    },
-    {
-      name: "Level 4",
-      regions: [
-        [1, 1, 1, 1, 2, 2, 2, 2],
-        [1, 1, 1, 2, 2, 2, 2, 3],
-        [1, 1, 2, 2, 2, 2, 3, 3],
-        [1, 2, 2, 2, 2, 3, 3, 3],
-        [2, 2, 2, 2, 3, 3, 3, 4],
-        [2, 2, 2, 3, 3, 3, 4, 4],
-        [2, 2, 3, 3, 3, 4, 4, 4],
-        [2, 3, 3, 3, 4, 4, 4, 4],
-      ],
-      initialQueens: [],
-    },
-  ];
 
   const [currentLevelIndex, setCurrentLevelIndex] = useState(0);
   const currentLevelData = levels[currentLevelIndex];
@@ -86,53 +26,61 @@ export default function App() {
     }
   };
 
+  // Function to go back to the previous level
   const handlePrevLevel = () => {
     if (currentLevelIndex > 0) {
       setCurrentLevelIndex((prev) => prev - 1);
     }
   };
 
+  const handleCancelGame = () => {
+    console.log("Game canceled. Staying on current level.");
+  };
+
   return (
-    <div className="min-h-screen bg-gray-100 flex flex-col items-center p-4 font-inter">
-      <h1 className="text-3xl font-extrabold text-gray-800 mb-6">
-        👑 Queen Logic Puzzle
+    <div className="min-h-screen bg-gradient-to-br from-purple-100 to-blue-200 flex flex-col items-center p-4 font-inter text-gray-800">
+      <h1 className="text-4xl font-extrabold text-purple-800 mb-6 drop-shadow-md">
+        👑Queen Puzzle
       </h1>
-      <div className="flex flex-col lg:flex-row justify-center mt-6 gap-8">
-        <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-6">
-          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-2 mb-4 text-center sm:text-left">
+
+      <div className="flex flex-col lg:flex-row justify-center mt-6 gap-8 w-full max-w-6xl">
+        <div className="w-full lg:w-3/5 bg-white rounded-3xl shadow-xl p-6 flex flex-col items-center">
+          <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center gap-4 mb-6 w-full">
             <button
               onClick={handlePrevLevel}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-600 disabled:opacity-50 w-full sm:w-auto"
+              className="bg-purple-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-purple-700 transition-all duration-300 ease-in-out disabled:opacity-40 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
               disabled={currentLevelIndex === 0}
             >
-              Previous
+              Previous Level
             </button>
 
-            <h2 className="text-lg font-bold text-gray-700 flex-1 sm:text-center">
+            <h2 className="text-xl font-bold text-center flex-1">
               {currentLevelData.name} ({currentLevelIndex + 1}/{levels.length})
               <br />
-              <span className="text-sm text-gray-600">
+              <span className="text-base text-gray-600 font-medium">
                 Queens to place: {numQueensForCurrentLevel}
               </span>
             </h2>
-
             <button
               onClick={handleNextLevel}
-              className="bg-blue-500 text-white px-4 py-2 rounded-lg font-semibold hover:bg-blue-600 disabled:opacity-50 w-full sm:w-auto"
+              className="bg-purple-600 text-white px-6 py-3 rounded-full font-semibold hover:bg-purple-700 transition-all duration-300 ease-in-out disabled:opacity-40 disabled:cursor-not-allowed shadow-md hover:shadow-lg"
               disabled={currentLevelIndex === levels.length - 1}
             >
-              Next
+              Next Level
             </button>
           </div>
+          {/* Board Component */}
           <Board
             size={size}
             regions={currentLevelData.regions}
             initialQueens={currentLevelData.initialQueens}
             numQueensToPlace={numQueensForCurrentLevel}
-            key={currentLevelIndex} // force reset on level change
+            key={currentLevelIndex}
+            onNextLevel={handleNextLevel} 
+            onCancel={handleCancelGame} 
           />
         </div>
-        <div className="w-full max-w-md bg-white rounded-xl shadow-lg p-6">
+        <div className="w-full lg:w-2/5 bg-white rounded-3xl shadow-xl p-6">
           <GameRulesCard />
         </div>
       </div>
